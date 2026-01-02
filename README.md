@@ -330,49 +330,12 @@ This is a full-stack web application demonstrating modern React development with
 5. **Icons**: Lucide React icon library
 6. **Deployment**: Vercel, GitHub Pages, Netlify
 
-## Browser Support
 
-- Chrome/Edge (latest)
-- Firefox (latest)
-- Safari (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
 
-## Performance
 
-- Lighthouse Score: 90+
-- First Contentful Paint: < 1.5s
-- Time to Interactive: < 3s
-- Optimized images and code splitting
-- Lazy loading for modals and components
 
-## Contributing
 
-Contributions are welcome! To contribute:
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Credits
-
-- **Design Inspiration**: Modern pet care apps
-- **Framework**: [Next.js](https://nextjs.org)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide](https://lucide.dev)
-- **Built with**: [v0 by Vercel](https://v0.dev)
-
-## Contact & Support
-
-For questions or support:
-- Open an issue on GitHub
-- Email: your-email@example.com
 
 ---
 
