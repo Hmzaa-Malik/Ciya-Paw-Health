@@ -1,0 +1,3 @@
+:HL["/Ciya-Paw-Health/_next/static/chunks/8a80e7184ad3a13f.css","style"]
+:HL["/Ciya-Paw-Health/_next/static/chunks/fbbd1a476fed736d.css","style"]
+0:{"buildId":"GyxN2TzUqbk8cPG1piwGl","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"/_not-found","paramType":null,"paramKey":"/_not-found","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
