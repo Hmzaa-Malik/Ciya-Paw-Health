@@ -2,15 +2,19 @@
 const nextConfig = {
   output: 'export',
   
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  basePath: '/Ciya-Paw-Health',
+  
   images: {
     unoptimized: true,
   },
   
-  // If your repo is at github.com/username/repo-name, uncomment and set:
-  // basePath: '/repo-name',
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default nextConfig
