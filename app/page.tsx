@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Home,
@@ -28,14 +28,76 @@ import {
   Loader2,
   Heart,
 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 
-const basePath = process.env.NODE_ENV === "production" ? "/Ciya-Paw-Health" : ""
+/**
+ * IMPORTANT (Vercel):
+ * - Do NOT use GitHub Pages basePath/assetPrefix here.
+ * - Put your images inside /public and reference them as "/file.jpg"
+ */
+const basePath = "" // keep empty for Vercel
 
-const pets = [
+/* ------------------------------------------------------------------ */
+/* TYPES */
+/* ------------------------------------------------------------------ */
+
+type TabId = "home" | "pet-health" | "services" | "wallet" | "profile"
+
+type Pet = {
+  id: number
+  name: string
+  type: string
+  age: string
+  birthday: string
+  image: string
+  avatar: string
+  flag: string
+}
+
+type HomeTabProps = {
+  selectedPet: Pet
+  setSelectedPet: React.Dispatch<React.SetStateAction<Pet>>
+  pets: Pet[]
+}
+
+type PetHealthTabProps = {
+  selectedPet: Pet
+}
+
+type ProfileTabProps = {
+  pets: Pet[]
+}
+
+type ImageUploadModalProps = {
+  profileImage: string
+  handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onClose: () => void
+}
+
+type ReminderModalProps = {
+  selectedPet: Pet
+  onClose: () => void
+}
+
+type VaccineModalProps = {
+  selectedPet: Pet
+  onClose: () => void
+}
+
+type AppointmentModalProps = {
+  selectedPet: Pet
+  onClose: () => void
+}
+
+/* ------------------------------------------------------------------ */
+/* DATA */
+/* ------------------------------------------------------------------ */
+
+const pets: Pet[] = [
   {
     id: 1,
     name: "Demon",
@@ -68,6 +130,10 @@ const pets = [
   },
 ]
 
+/* ------------------------------------------------------------------ */
+/* SPLASH */
+/* ------------------------------------------------------------------ */
+
 function SplashScreen({ onComplete }: { onComplete: () => void }) {
   useEffect(() => {
     const timer = setTimeout(onComplete, 3000)
@@ -83,10 +149,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
     >
       <div className="text-center">
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 360],
-          }}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 360] }}
           transition={{
             duration: 2,
             repeat: Number.POSITIVE_INFINITY,
@@ -98,6 +161,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
             <Heart className="w-12 h-12 text-pink-500" fill="currentColor" />
           </div>
         </motion.div>
+
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,14 +170,16 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
         >
           Paw Health
         </motion.h1>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="text-white/90 text-lg"
         >
-          Your pet's wellness companion
+          Your pet&apos;s wellness companion
         </motion.p>
+
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
@@ -126,11 +192,15 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   )
 }
 
+/* ------------------------------------------------------------------ */
+/* MAIN PAGE */
+/* ------------------------------------------------------------------ */
+
 export default function PawHealthApp() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("home")
-  const [selectedPet, setSelectedPet] = useState(pets[0])
-  const [mounted, setMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [activeTab, setActiveTab] = useState<TabId>("home")
+  const [selectedPet, setSelectedPet] = useState<Pet>(pets[0])
+  const [mounted, setMounted] = useState<boolean>(false)
 
   useEffect(() => {
     setMounted(true)
@@ -148,6 +218,7 @@ export default function PawHealthApp() {
         transition={{ duration: 0.5 }}
         className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-purple-100"
       >
+        {/* Floating dots (client-only) */}
         {mounted && (
           <div className="fixed inset-0 overflow-hidden pointer-events-none">
             {Array.from({ length: 20 }).map((_, i) => (
@@ -188,6 +259,7 @@ export default function PawHealthApp() {
                 <HomeTab selectedPet={selectedPet} setSelectedPet={setSelectedPet} pets={pets} />
               </motion.div>
             )}
+
             {activeTab === "pet-health" && (
               <motion.div
                 key="pet-health"
@@ -199,6 +271,7 @@ export default function PawHealthApp() {
                 <PetHealthTab selectedPet={selectedPet} />
               </motion.div>
             )}
+
             {activeTab === "services" && (
               <motion.div
                 key="services"
@@ -210,6 +283,7 @@ export default function PawHealthApp() {
                 <ServicesTab />
               </motion.div>
             )}
+
             {activeTab === "wallet" && (
               <motion.div
                 key="wallet"
@@ -221,6 +295,7 @@ export default function PawHealthApp() {
                 <WalletTab />
               </motion.div>
             )}
+
             {activeTab === "profile" && (
               <motion.div
                 key="profile"
@@ -237,11 +312,11 @@ export default function PawHealthApp() {
           {/* Bottom Navigation */}
           <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-around shadow-lg">
             {[
-              { id: "home", icon: Home, label: "Home" },
-              { id: "pet-health", icon: Activity, label: "Pet health" },
-              { id: "services", icon: Grid3x3, label: "Services" },
-              { id: "wallet", icon: Wallet, label: "Wallet" },
-              { id: "profile", icon: User, label: "Profile" },
+              { id: "home" as const, icon: Home, label: "Home" },
+              { id: "pet-health" as const, icon: Activity, label: "Pet health" },
+              { id: "services" as const, icon: Grid3x3, label: "Services" },
+              { id: "wallet" as const, icon: Wallet, label: "Wallet" },
+              { id: "profile" as const, icon: User, label: "Profile" },
             ].map((tab) => (
               <motion.button
                 key={tab.id}
@@ -270,24 +345,31 @@ export default function PawHealthApp() {
   )
 }
 
-function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
-  const [showReminderModal, setShowReminderModal] = useState(false)
-  const [showVaccineModal, setShowVaccineModal] = useState(false)
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [showImageUpload, setShowImageUpload] = useState(false)
-  const [profileImage, setProfileImage] = useState(`${basePath}/diverse-group.png`)
+/* ------------------------------------------------------------------ */
+/* HOME TAB */
+/* ------------------------------------------------------------------ */
+
+function HomeTab({ selectedPet, setSelectedPet, pets }: HomeTabProps) {
+  const [showReminderModal, setShowReminderModal] = useState<boolean>(false)
+  const [showVaccineModal, setShowVaccineModal] = useState<boolean>(false)
+  const [showAppointmentModal, setShowAppointmentModal] = useState<boolean>(false)
+  const [showImageUpload, setShowImageUpload] = useState<boolean>(false)
+  const [profileImage, setProfileImage] = useState<string>(`${basePath}/diverse-group.png`)
   const [likedPets, setLikedPets] = useState<number[]>([])
 
-  const handleImageUpload = (event: any) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string)
-        setShowImageUpload(false)
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const result = reader.result
+      if (typeof result === "string") {
+        setProfileImage(result)
       }
-      reader.readAsDataURL(file)
+      setShowImageUpload(false)
     }
+    reader.readAsDataURL(file)
   }
 
   const toggleLike = (petId: number) => {
@@ -315,6 +397,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
               </Avatar>
             </motion.div>
             <motion.button
+              type="button"
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowImageUpload(true)}
@@ -323,6 +406,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
               <Camera className="w-3 h-3 text-white" />
             </motion.button>
           </div>
+
           <div className="flex items-center gap-2">
             <motion.div whileHover={{ scale: 1.2, rotate: 180 }} whileTap={{ scale: 0.9 }}>
               <Activity className="w-5 h-5 text-gray-600 cursor-pointer" />
@@ -332,13 +416,14 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
             </motion.div>
           </div>
         </div>
+
         <motion.div whileHover={{ scale: 1.1, rotate: 15 }} whileTap={{ scale: 0.9 }} className="relative">
           <Bell className="w-6 h-6 text-gray-700 cursor-pointer hover:text-gray-900 transition-colors" />
           <motion.span
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
             className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"
-          ></motion.span>
+          />
         </motion.div>
       </motion.div>
 
@@ -368,8 +453,9 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="flex items-center gap-4 mb-6"
       >
-        {pets.map((pet: any, idx: number) => (
+        {pets.map((pet: Pet, idx: number) => (
           <motion.button
+            type="button"
             key={pet.id}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -386,7 +472,9 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
                 <AvatarImage src={pet.avatar || "/placeholder.svg"} />
                 <AvatarFallback>{pet.name[0]}</AvatarFallback>
               </Avatar>
+
               <motion.button
+                type="button"
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
@@ -396,16 +484,21 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
                 className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-md"
               >
                 <Heart
-                  className={`w-3 h-3 ${likedPets.includes(pet.id) ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+                  className={`w-3 h-3 ${
+                    likedPets.includes(pet.id) ? "text-red-500 fill-red-500" : "text-gray-400"
+                  }`}
                 />
               </motion.button>
+
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-xs font-medium bg-white px-2 py-0.5 rounded-full shadow-sm">
                 {pet.name}
               </span>
             </div>
           </motion.button>
         ))}
+
         <motion.button
+          type="button"
           whileHover={{ scale: 1.15, rotate: 90 }}
           whileTap={{ scale: 0.95 }}
           className="w-16 h-16 rounded-full bg-blue-200 flex items-center justify-center shadow-md hover:bg-blue-300 transition-colors"
@@ -431,6 +524,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
               >
                 <Camera className="w-5 h-5 text-white" />
               </motion.div>
+
               <motion.img
                 key={selectedPet.id}
                 initial={{ opacity: 0, y: 30, rotate: -10 }}
@@ -457,6 +551,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
                     <AvatarFallback>{selectedPet.name[0]}</AvatarFallback>
                   </Avatar>
                 </motion.div>
+
                 <motion.span
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
@@ -465,6 +560,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
                   {selectedPet.flag}
                 </motion.span>
               </div>
+
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button className="bg-gray-900 hover:bg-gray-800 text-white rounded-full px-4 py-2 flex items-center gap-2 shadow-lg border border-gray-100">
                   Digicard <ChevronRight className="w-4 h-4" />
@@ -485,9 +581,9 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
             </motion.div>
           </div>
 
-          {/* Progress Dots */}
+          {/* Progress Dots (FIXED TYPESCRIPT ERROR HERE) */}
           <div className="flex items-center justify-center gap-2 pb-4">
-            {pets.map((pet, idx) => (
+            {pets.map((pet: Pet, idx: number) => (
               <motion.div
                 key={pet.id}
                 animate={{
@@ -519,7 +615,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
             label: "Appointment",
             color: "text-pink-500",
           },
-        ].map((button, idx) => (
+        ].map((button, idx: number) => (
           <motion.div
             key={button.label}
             initial={{ opacity: 0, y: 20 }}
@@ -550,8 +646,9 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
         <Card className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-4 flex items-center justify-between shadow-lg">
           <div className="flex-1">
             <p className="text-sm mb-1">You have vaccine comming</p>
-            <p className="text-sm font-semibold">up for Wing's on 14 Nov 2025</p>
+            <p className="text-sm font-semibold">up for Wing&apos;s on 14 Nov 2025</p>
           </div>
+
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: "easeInOut" }}
@@ -559,6 +656,7 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
           >
             <Clock className="w-6 h-6 text-white" />
           </motion.div>
+
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
             <Button size="sm" className="ml-3 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full">
               Reminder
@@ -577,12 +675,15 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
           />
         )}
       </AnimatePresence>
+
       <AnimatePresence>
         {showReminderModal && <ReminderModal selectedPet={selectedPet} onClose={() => setShowReminderModal(false)} />}
       </AnimatePresence>
+
       <AnimatePresence>
         {showVaccineModal && <VaccineModal selectedPet={selectedPet} onClose={() => setShowVaccineModal(false)} />}
       </AnimatePresence>
+
       <AnimatePresence>
         {showAppointmentModal && (
           <AppointmentModal selectedPet={selectedPet} onClose={() => setShowAppointmentModal(false)} />
@@ -592,7 +693,11 @@ function HomeTab({ selectedPet, setSelectedPet, pets }: any) {
   )
 }
 
-function ImageUploadModal({ profileImage, handleImageUpload, onClose }: any) {
+/* ------------------------------------------------------------------ */
+/* MODALS */
+/* ------------------------------------------------------------------ */
+
+function ImageUploadModal({ profileImage, handleImageUpload, onClose }: ImageUploadModalProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -611,10 +716,11 @@ function ImageUploadModal({ profileImage, handleImageUpload, onClose }: any) {
         <Card className="bg-white p-6 max-w-sm w-full">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Update Profile Picture</h3>
-            <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
+            <motion.button type="button" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
               <X className="w-5 h-5 text-gray-500" />
             </motion.button>
           </div>
+
           <div className="text-center mb-4">
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <Avatar className="w-24 h-24 mx-auto mb-4">
@@ -623,12 +729,14 @@ function ImageUploadModal({ profileImage, handleImageUpload, onClose }: any) {
               </Avatar>
             </motion.div>
           </div>
+
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             className="mb-4 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
+
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button onClick={onClose} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
               Done
@@ -640,9 +748,9 @@ function ImageUploadModal({ profileImage, handleImageUpload, onClose }: any) {
   )
 }
 
-function ReminderModal({ selectedPet, onClose }: any) {
-  const [reminderType, setReminderType] = useState("medication")
-  const [reminderTime, setReminderTime] = useState("09:00")
+function ReminderModal({ selectedPet, onClose }: ReminderModalProps) {
+  const [reminderType, setReminderType] = useState<"medication" | "feeding" | "exercise" | "grooming">("medication")
+  const [reminderTime, setReminderTime] = useState<string>("09:00")
 
   return (
     <motion.div
@@ -660,7 +768,7 @@ function ReminderModal({ selectedPet, onClose }: any) {
         <Card className="bg-white p-6 max-w-sm w-full">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Set Reminder</h3>
-            <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
+            <motion.button type="button" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
               <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
             </motion.button>
           </div>
@@ -675,7 +783,7 @@ function ReminderModal({ selectedPet, onClose }: any) {
             <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Type</label>
             <select
               value={reminderType}
-              onChange={(e) => setReminderType(e.target.value)}
+              onChange={(e) => setReminderType(e.target.value as typeof reminderType)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="medication">Medication</option>
@@ -701,6 +809,7 @@ function ReminderModal({ selectedPet, onClose }: any) {
                 Cancel
               </Button>
             </motion.div>
+
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
               <Button onClick={onClose} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
                 <Check className="w-4 h-4 mr-2" />
@@ -714,8 +823,10 @@ function ReminderModal({ selectedPet, onClose }: any) {
   )
 }
 
-function VaccineModal({ selectedPet, onClose }: any) {
-  const vaccines = [
+function VaccineModal({ selectedPet, onClose }: VaccineModalProps) {
+  type Vaccine = { name: string; dueDate: string; status: "upcoming" | "completed" }
+
+  const vaccines: Vaccine[] = [
     { name: "Rabies", dueDate: "Jan 15, 2026", status: "upcoming" },
     { name: "Distemper", dueDate: "Feb 20, 2026", status: "upcoming" },
     { name: "Parvovirus", dueDate: "Completed", status: "completed" },
@@ -737,7 +848,7 @@ function VaccineModal({ selectedPet, onClose }: any) {
         <Card className="bg-white p-6 max-w-sm w-full">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Vaccine Schedule</h3>
-            <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
+            <motion.button type="button" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
               <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
             </motion.button>
           </div>
@@ -749,9 +860,9 @@ function VaccineModal({ selectedPet, onClose }: any) {
           </div>
 
           <motion.div className="space-y-3 mb-6">
-            {vaccines.map((vaccine, idx) => (
+            {vaccines.map((vaccine: Vaccine, idx: number) => (
               <motion.div
-                key={idx}
+                key={`${vaccine.name}-${idx}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -786,10 +897,10 @@ function VaccineModal({ selectedPet, onClose }: any) {
   )
 }
 
-function AppointmentModal({ selectedPet, onClose }: any) {
+function AppointmentModal({ selectedPet, onClose }: AppointmentModalProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [selectedTime, setSelectedTime] = useState("10:00")
-  const [appointmentType, setAppointmentType] = useState("checkup")
+  const [selectedTime, setSelectedTime] = useState<string>("10:00")
+  const [appointmentType, setAppointmentType] = useState<"checkup" | "vaccination" | "grooming" | "dental">("checkup")
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
@@ -800,20 +911,24 @@ function AppointmentModal({ selectedPet, onClose }: any) {
   }
 
   const { firstDay, daysInMonth } = getDaysInMonth(selectedDate)
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ]
+
+  const monthNames = useMemo(
+    () => [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+    []
+  )
 
   return (
     <motion.div
@@ -831,7 +946,7 @@ function AppointmentModal({ selectedPet, onClose }: any) {
         <Card className="bg-white p-6 max-w-sm w-full my-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Book Appointment</h3>
-            <motion.button whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
+            <motion.button type="button" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }} onClick={onClose}>
               <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
             </motion.button>
           </div>
@@ -862,13 +977,16 @@ function AppointmentModal({ selectedPet, onClose }: any) {
               {Array.from({ length: firstDay }, (_, i) => (
                 <div key={`empty-${i}`} className="aspect-square" />
               ))}
+
               {Array.from({ length: daysInMonth }, (_, i) => {
                 const day = i + 1
                 const isSelected = day === selectedDate.getDate()
-                const isToday = day === new Date().getDate() && selectedDate.getMonth() === new Date().getMonth()
+                const today = new Date()
+                const isToday = day === today.getDate() && selectedDate.getMonth() === today.getMonth()
 
                 return (
                   <motion.button
+                    type="button"
                     key={day}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -892,7 +1010,7 @@ function AppointmentModal({ selectedPet, onClose }: any) {
             <label className="block text-sm font-medium text-gray-700 mb-2">Appointment Type</label>
             <select
               value={appointmentType}
-              onChange={(e) => setAppointmentType(e.target.value)}
+              onChange={(e) => setAppointmentType(e.target.value as typeof appointmentType)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="checkup">General Checkup</option>
@@ -924,6 +1042,7 @@ function AppointmentModal({ selectedPet, onClose }: any) {
                 Cancel
               </Button>
             </motion.div>
+
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
               <Button onClick={onClose} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
                 <Check className="w-4 h-4 mr-2" />
@@ -937,17 +1056,21 @@ function AppointmentModal({ selectedPet, onClose }: any) {
   )
 }
 
-function PetHealthTab({ selectedPet }: any) {
+/* ------------------------------------------------------------------ */
+/* PET HEALTH TAB */
+/* ------------------------------------------------------------------ */
+
+function PetHealthTab({ selectedPet }: PetHealthTabProps) {
   const healthData = [
     { label: "Weight", value: "12.5 kg", icon: "⚖️", status: "Normal", progress: 75 },
     { label: "Temperature", value: "38.5°C", icon: "🌡️", status: "Normal", progress: 90 },
     { label: "Heart Rate", value: "110 bpm", icon: "❤️", status: "Healthy", progress: 85 },
-  ]
+  ] as const
 
   const upcomingAppointments = [
     { type: "Vaccination", date: "Dec 15, 2025", time: "10:00 AM" },
     { type: "Check-up", date: "Jan 05, 2026", time: "2:30 PM" },
-  ]
+  ] as const
 
   return (
     <div className="p-6">
@@ -991,9 +1114,9 @@ function PetHealthTab({ selectedPet }: any) {
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Health Metrics</h3>
         <motion.div className="grid gap-3">
-          {healthData.map((item, idx) => (
+          {healthData.map((item, idx: number) => (
             <motion.div
-              key={idx}
+              key={`${item.label}-${idx}`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -1034,9 +1157,9 @@ function PetHealthTab({ selectedPet }: any) {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Upcoming Appointments</h3>
         <motion.div className="space-y-3">
-          {upcomingAppointments.map((appointment, idx) => (
+          {upcomingAppointments.map((appointment, idx: number) => (
             <motion.div
-              key={idx}
+              key={`${appointment.type}-${idx}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -1061,19 +1184,23 @@ function PetHealthTab({ selectedPet }: any) {
   )
 }
 
-function ProfileTab({ pets }: any) {
+/* ------------------------------------------------------------------ */
+/* PROFILE TAB */
+/* ------------------------------------------------------------------ */
+
+function ProfileTab({ pets }: ProfileTabProps) {
   const accountItems = [
     { icon: User, label: "My Profile" },
     { icon: Bell, label: "Saved" },
     { icon: Calendar, label: "Schedule" },
-  ]
+  ] as const
 
   const settingItems = [
     { icon: Bell, label: "Notification" },
     { icon: MapPin, label: "Language" },
-  ]
+  ] as const
 
-  const helpItems = [{ icon: MapPin, label: "About us" }]
+  const helpItems = [{ icon: MapPin, label: "About us" }] as const
 
   return (
     <div className="p-6">
@@ -1090,7 +1217,9 @@ function ProfileTab({ pets }: any) {
             <AvatarFallback>PB</AvatarFallback>
           </Avatar>
         </motion.div>
+
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Paul Bailey</h2>
+
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-6 py-2 mb-4">
             New pet parent
@@ -1104,7 +1233,7 @@ function ProfileTab({ pets }: any) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex items-center justify-center gap-3"
         >
-          {pets.map((pet: any, idx: number) => (
+          {pets.map((pet: Pet, idx: number) => (
             <motion.div
               key={pet.id}
               initial={{ opacity: 0, scale: 0.8 }}
@@ -1132,9 +1261,10 @@ function ProfileTab({ pets }: any) {
       >
         <h3 className="text-sm font-semibold text-gray-600 mb-3">My account</h3>
         <Card className="bg-white shadow-md border border-gray-100 divide-y divide-gray-100">
-          {accountItems.map((item, idx) => (
+          {accountItems.map((item, idx: number) => (
             <motion.button
-              key={idx}
+              type="button"
+              key={`${item.label}-${idx}`}
               whileHover={{ x: 5, backgroundColor: "rgba(249, 250, 251, 1)" }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -1159,9 +1289,10 @@ function ProfileTab({ pets }: any) {
       >
         <h3 className="text-sm font-semibold text-gray-600 mb-3">Setting</h3>
         <Card className="bg-white shadow-md border border-gray-100 divide-y divide-gray-100">
-          {settingItems.map((item, idx) => (
+          {settingItems.map((item, idx: number) => (
             <motion.button
-              key={idx}
+              type="button"
+              key={`${item.label}-${idx}`}
               whileHover={{ x: 5, backgroundColor: "rgba(249, 250, 251, 1)" }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -1185,9 +1316,10 @@ function ProfileTab({ pets }: any) {
       >
         <h3 className="text-sm font-semibold text-gray-600 mb-3">Help and info</h3>
         <Card className="bg-white shadow-md border border-gray-100">
-          {helpItems.map((item, idx) => (
+          {helpItems.map((item, idx: number) => (
             <motion.button
-              key={idx}
+              type="button"
+              key={`${item.label}-${idx}`}
               whileHover={{ x: 5, backgroundColor: "rgba(249, 250, 251, 1)" }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -1205,6 +1337,10 @@ function ProfileTab({ pets }: any) {
     </div>
   )
 }
+
+/* ------------------------------------------------------------------ */
+/* SERVICES TAB */
+/* ------------------------------------------------------------------ */
 
 function ServicesTab() {
   const services = [
@@ -1244,13 +1380,13 @@ function ServicesTab() {
       description: "Safe pet boarding facilities",
       color: "bg-indigo-100 text-indigo-600",
     },
-  ]
+  ] as const
 
   const nearbyVets = [
     { name: "Pet Care Clinic", distance: "0.5 km", rating: 4.8, reviews: 156 },
     { name: "Animal Hospital", distance: "1.2 km", rating: 4.9, reviews: 203 },
     { name: "Paw Wellness Center", distance: "2.1 km", rating: 4.7, reviews: 89 },
-  ]
+  ] as const
 
   return (
     <div className="p-6">
@@ -1271,9 +1407,9 @@ function ServicesTab() {
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Services</h3>
         <motion.div className="grid grid-cols-2 gap-4">
-          {services.map((service, idx) => (
+          {services.map((service, idx: number) => (
             <motion.div
-              key={idx}
+              key={`${service.title}-${idx}`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -1300,9 +1436,9 @@ function ServicesTab() {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Nearby Veterinarians</h3>
         <motion.div className="space-y-3">
-          {nearbyVets.map((vet, idx) => (
+          {nearbyVets.map((vet, idx: number) => (
             <motion.div
-              key={idx}
+              key={`${vet.name}-${idx}`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -1341,15 +1477,20 @@ function ServicesTab() {
   )
 }
 
+/* ------------------------------------------------------------------ */
+/* WALLET TAB */
+/* ------------------------------------------------------------------ */
+
 function WalletTab() {
   const balance = 1250.75
+
   const transactions = [
-    { type: "expense", title: "Vaccination - Lucky", amount: 85.0, date: "Dec 20, 2025", icon: Syringe },
-    { type: "income", title: "Refund - Grooming", amount: 45.0, date: "Dec 18, 2025", icon: TrendingUp },
-    { type: "expense", title: "Vet Consultation", amount: 120.0, date: "Dec 15, 2025", icon: Stethoscope },
-    { type: "expense", title: "Pet Food Order", amount: 67.5, date: "Dec 12, 2025", icon: Bone },
-    { type: "income", title: "Cashback Reward", amount: 15.0, date: "Dec 10, 2025", icon: TrendingUp },
-  ]
+    { type: "expense" as const, title: "Vaccination - Lucky", amount: 85.0, date: "Dec 20, 2025", icon: Syringe },
+    { type: "income" as const, title: "Refund - Grooming", amount: 45.0, date: "Dec 18, 2025", icon: TrendingUp },
+    { type: "expense" as const, title: "Vet Consultation", amount: 120.0, date: "Dec 15, 2025", icon: Stethoscope },
+    { type: "expense" as const, title: "Pet Food Order", amount: 67.5, date: "Dec 12, 2025", icon: Bone },
+    { type: "income" as const, title: "Cashback Reward", amount: 15.0, date: "Dec 10, 2025", icon: TrendingUp },
+  ] as const
 
   return (
     <div className="p-6">
@@ -1386,6 +1527,7 @@ function WalletTab() {
                 ${balance.toFixed(2)}
               </motion.h2>
             </div>
+
             <motion.div
               animate={{ rotateY: [0, 180, 360] }}
               transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3, ease: "easeInOut" }}
@@ -1393,6 +1535,7 @@ function WalletTab() {
               <CreditCard className="w-12 h-12 text-white/80" />
             </motion.div>
           </div>
+
           <div className="flex items-center gap-3 mt-6">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
               <Button className="w-full bg-white text-blue-600 hover:bg-gray-100 font-semibold rounded-full">
@@ -1419,9 +1562,9 @@ function WalletTab() {
           { icon: Plus, label: "Top Up", color: "bg-blue-100 text-blue-600" },
           { icon: CreditCard, label: "Cards", color: "bg-purple-100 text-purple-600" },
           { icon: TrendingUp, label: "Rewards", color: "bg-green-100 text-green-600" },
-        ].map((action, idx) => (
+        ].map((action, idx: number) => (
           <motion.div
-            key={idx}
+            key={`${action.label}-${idx}`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
@@ -1446,9 +1589,9 @@ function WalletTab() {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h3>
         <motion.div className="space-y-3">
-          {transactions.map((transaction, idx) => (
+          {transactions.map((transaction, idx: number) => (
             <motion.div
-              key={idx}
+              key={`${transaction.title}-${idx}`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.1 }}
@@ -1470,11 +1613,13 @@ function WalletTab() {
                         <ArrowUpRight className="w-5 h-5" />
                       )}
                     </motion.div>
+
                     <div>
                       <p className="font-semibold text-gray-900">{transaction.title}</p>
                       <p className="text-xs text-gray-600">{transaction.date}</p>
                     </div>
                   </div>
+
                   <div className="text-right">
                     <p className={`font-bold ${transaction.type === "expense" ? "text-red-600" : "text-green-600"}`}>
                       {transaction.type === "expense" ? "-" : "+"}${transaction.amount.toFixed(2)}
